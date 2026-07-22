@@ -18,3 +18,17 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit}
 .bulk-class-picker{display:flex;flex-direction:column;gap:6px;font-size:.78rem;font-weight:700;color:var(--muted);min-width:220px}
 .bulk-class-picker select{min-height:42px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);padding:0 12px;font:inherit}
 @media(max-width:700px){.class-bulk-tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bulk-class-picker{grid-column:1/-1;min-width:0}.class-bulk-tools .btn{width:100%}.class-bulk-tools #clearAll{grid-column:1/-1}}
+
+/* V4: reliable per-class quick actions (no mobile select dependency) */
+.bulk-section{margin:18px 0}
+.bulk-section-head h3{margin:0 0 4px}
+.bulk-section-head p{margin:0;color:var(--muted);font-size:13px}
+.class-bulk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.class-bulk-card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:14px;box-shadow:0 8px 24px rgba(28,32,57,.05)}
+.class-bulk-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.class-bulk-title span{font-size:10px;letter-spacing:.1em;font-weight:900;color:var(--brand)}
+.class-bulk-title strong{font-size:14px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.class-bulk-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.class-bulk-buttons .btn{width:100%;padding:10px 8px;font-size:12px}
+.class-bulk-buttons .bulk-clear{grid-column:1/-1}
+@media(max-width:700px){.class-bulk-grid{grid-template-columns:1fr}.class-bulk-buttons{grid-template-columns:1fr 1fr}.class-bulk-title strong{max-width:65%}}

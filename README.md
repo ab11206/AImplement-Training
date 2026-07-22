@@ -43,3 +43,6 @@ Firebase test-mode rules expire. Keep read/write enabled for this simple PIN-bas
 
 
 Update v3: Admin bulk attendance/review actions now apply only to the class selected in the Class dropdown.
+
+
+Version 4 change: Replaced the class dropdown with eight separate per-class quick-action cards for reliable mobile use.

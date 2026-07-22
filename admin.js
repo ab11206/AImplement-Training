@@ -12,15 +12,40 @@ function renderMatrix(){normalize();$('#matrix thead').innerHTML=`<tr><th>Studen
 function resourceRow(i,r={}){return `<div class="resource-edit"><input class="resource-label" data-i="${i}" value="${esc(r.label||'')}" placeholder="Resource name"><input class="resource-url" data-i="${i}" value="${esc(r.url||'')}" placeholder="https://…"><button type="button" class="remove-resource" aria-label="Remove">✕</button></div>`}
 function renderSessions(){normalize();$('#sessionEditors').innerHTML=Array.from({length:8},(_,x)=>{const i=x+1,s=state.sessions[i];return `<article class="session-editor" data-editor="${i}"><div class="editor-heading"><span>SESSION ${i}</span><strong>${esc(s.title)}</strong></div><div class="form-grid"><div class="field"><label>Class title</label><input data-field="title" data-i="${i}" value="${esc(s.title)}"></div><div class="field"><label>Date</label><input type="date" data-field="date" data-i="${i}" value="${esc(s.date)}"></div><div class="field"><label>Status</label><select data-field="status" data-i="${i}"><option value="not-started" ${s.status==='not-started'?'selected':''}>Not Started</option><option value="in-progress" ${s.status==='in-progress'?'selected':''}>In Progress</option><option value="completed" ${s.status==='completed'?'selected':''}>Completed</option></select></div><div class="field full"><label>Instructor notes</label><textarea data-field="notes" data-i="${i}" rows="3" placeholder="Homework, reminders, or class notes…">${esc(s.notes)}</textarea></div></div><div class="resource-editor"><div class="resource-head"><h4>Files and links</h4><button type="button" class="btn tiny add-resource" data-i="${i}">+ Add resource</button></div><div class="resource-rows">${s.resources.map(r=>resourceRow(i,r)).join('')}</div></div></article>`}).join('');$$('[data-field]').forEach(x=>x.oninput=markDirty);$$('.add-resource').forEach(b=>b.onclick=()=>{b.closest('.session-editor').querySelector('.resource-rows').insertAdjacentHTML('beforeend',resourceRow(+b.dataset.i));wireResourceButtons();markDirty()});wireResourceButtons()}
 function wireResourceButtons(){$$('.remove-resource').forEach(b=>b.onclick=()=>{b.closest('.resource-edit').remove();markDirty()});$$('.resource-label,.resource-url').forEach(x=>x.oninput=markDirty)}
-function renderBulkSessionOptions(){const select=$('#bulkSession');if(!select)return;const current=select.value||'1';select.innerHTML=Array.from({length:8},(_,x)=>{const i=x+1;return `<option value="${i}">Class ${i}: ${esc(state.sessions[i].title||`Class ${i}`)}</option>`}).join('');select.value=current;}
-function render(){renderMatrix();renderSessions();renderBulkSessionOptions()}
+function renderClassBulkActions(){
+  const host=$('#classBulkActions');
+  if(!host)return;
+  host.innerHTML=Array.from({length:8},(_,x)=>{
+    const i=x+1,s=state.sessions[i];
+    return `<article class="class-bulk-card">
+      <div class="class-bulk-title"><span>CLASS ${i}</span><strong>${esc(s.title||`Class ${i}`)}</strong></div>
+      <div class="class-bulk-buttons">
+        <button type="button" class="btn secondary bulk-present" data-session="${i}">Mark all present</button>
+        <button type="button" class="btn secondary bulk-reviewed" data-session="${i}">Mark all reviewed</button>
+        <button type="button" class="btn ghost bulk-clear" data-session="${i}">Clear class</button>
+      </div>
+    </article>`
+  }).join('');
+  $$('.bulk-present').forEach(b=>b.onclick=()=>setClassMarks(+b.dataset.session,'attendance',true));
+  $$('.bulk-reviewed').forEach(b=>b.onclick=()=>setClassMarks(+b.dataset.session,'review',true));
+  $$('.bulk-clear').forEach(b=>b.onclick=()=>{const i=+b.dataset.session;if(confirm(`Clear attendance and review marks for ${state.sessions[i].title||`Class ${i}`}?`))clearSelectedClass(i)});
+}
+function render(){renderMatrix();renderSessions();renderClassBulkActions()}
 async function load(){try{const snap=await get(ref(db,'trainingDashboard'));state=snap.val()||blank();normalize();render();$('#connection').textContent='● Firebase connected';$('#databaseInfo').textContent='Connected to ai-class-dashboard-f0fbd Realtime Database.';const t=state.meta?.updatedAt;$('#lastSaved').textContent=`Last saved: ${t?new Date(t).toLocaleString():'Never'}`;$('#updatedBy').value=state.meta?.updatedBy||'Admin'}catch(e){$('#connection').textContent='Connection error';$('#databaseInfo').textContent=e.message;toast(e.message)}}
 function collect(){normalize();$$('[data-field]').forEach(x=>state.sessions[x.dataset.i][x.dataset.field]=x.value);$$('.check').forEach(x=>state.sessions[x.dataset.i][x.dataset.k][x.dataset.s]=x.checked);$$('.session-editor').forEach(editor=>{const i=editor.dataset.editor;state.sessions[i].resources=[...editor.querySelectorAll('.resource-edit')].map(row=>({label:row.querySelector('.resource-label').value.trim(),url:row.querySelector('.resource-url').value.trim()})).filter(r=>r.url)})}
-function setClassMarks(key,val){const session=$('#bulkSession')?.value||'1';$$(`.check[data-i="${session}"][data-k="${key}"]`).forEach(x=>x.checked=val);markDirty();toast(`${val?'Marked':'Cleared'} ${key==='attendance'?'attendance':'reviews'} for ${state.sessions[session].title||`Class ${session}`}`)}
-function clearSelectedClass(){const session=$('#bulkSession')?.value||'1';$$(`.check[data-i="${session}"]`).forEach(x=>x.checked=false);markDirty();toast(`Cleared all marks for ${state.sessions[session].title||`Class ${session}`}`)}
+function setClassMarks(session,key,val){
+  $$(`.check[data-i="${session}"][data-k="${key}"]`).forEach(x=>x.checked=val);
+  markDirty();
+  toast(`${val?'Marked':'Cleared'} ${key==='attendance'?'attendance':'reviews'} for ${state.sessions[session].title||`Class ${session}`}`);
+}
+function clearSelectedClass(session){
+  $$(`.check[data-i="${session}"]`).forEach(x=>x.checked=false);
+  markDirty();
+  toast(`Cleared all marks for ${state.sessions[session].title||`Class ${session}`}`);
+}
 function unlock(){if($('#pin').value==='5339'){$('#login').style.display='none';sessionStorage.setItem('adminUnlocked','1');load()}else $('#loginMsg').textContent='Incorrect PIN'}
 $('#unlock').onclick=unlock;$('#pin').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});if(sessionStorage.getItem('adminUnlocked')==='1'){$('#login').style.display='none';load()}
-$('#lock').onclick=()=>{sessionStorage.removeItem('adminUnlocked');location.reload()};$('#allPresent').onclick=()=>setClassMarks('attendance',true);$('#allReviewed').onclick=()=>setClassMarks('review',true);$('#clearAll').onclick=()=>{const session=$('#bulkSession')?.value||'1';if(confirm(`Clear attendance and review marks for ${state.sessions[session].title||`Class ${session}`}?`))clearSelectedClass()};
+$('#lock').onclick=()=>{sessionStorage.removeItem('adminUnlocked');location.reload()};
 $$('[data-admin-view]').forEach(btn=>btn.onclick=()=>{$$('[data-admin-view]').forEach(x=>x.classList.toggle('active',x===btn));$$('.admin-view').forEach(v=>v.classList.toggle('active',v.id===`admin-${btn.dataset.adminView}`))});
 $('#save').onclick=async()=>{collect();state.meta={...state.meta,updatedAt:Date.now(),updatedBy:$('#updatedBy').value.trim()||'Admin',version:2};try{await set(ref(db,'trainingDashboard'),state);dirty=false;toast('Saved successfully');sessionStorage.removeItem('adminUnlocked');setTimeout(()=>location.reload(),900)}catch(e){toast(`Save failed: ${e.message}`)}};
 $('#exportBtn').onclick=()=>{collect();const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`aimplement-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
