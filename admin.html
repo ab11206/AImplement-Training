@@ -10,7 +10,14 @@
 <nav class="app-nav admin-nav"><button class="nav-btn active" data-admin-view="attendance">Attendance matrix</button><button class="nav-btn" data-admin-view="sessions">Session details</button><button class="nav-btn" data-admin-view="settings">Backup & tools</button></nav>
 
 <section class="admin-view active" id="admin-attendance">
-<div class="admin-tools"><button class="btn secondary" id="allPresent">Mark all present</button><button class="btn secondary" id="allReviewed">Mark all reviewed</button><button class="btn ghost" id="clearAll">Clear all marks</button></div>
+<div class="admin-tools class-bulk-tools">
+  <label class="bulk-class-picker">Class
+    <select id="bulkSession" aria-label="Choose class for bulk action"></select>
+  </label>
+  <button class="btn secondary" id="allPresent">Mark class present</button>
+  <button class="btn secondary" id="allReviewed">Mark class reviewed</button>
+  <button class="btn ghost" id="clearAll">Clear selected class</button>
+</div>
 <div class="table-wrap"><table id="matrix"><thead></thead><tbody></tbody></table></div>
 </section>
 

@@ -40,3 +40,6 @@ Admin PIN: `5339`
 ## Firebase rules
 
 Firebase test-mode rules expire. Keep read/write enabled for this simple PIN-based setup or replace them with more restrictive rules later.
+
+
+Update v3: Admin bulk attendance/review actions now apply only to the class selected in the Class dropdown.
