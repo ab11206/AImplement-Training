@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#c20a73"><title>Admin · AImplement Training</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<div class="login-overlay" id="login"><div class="login-card"><div class="brand"><div class="brand-mark">AI</div><div><h1>Admin Access</h1><p>Enter the dashboard PIN</p></div></div><input id="pin" type="password" inputmode="numeric" placeholder="PIN" maxlength="4"><button class="btn primary" id="unlock">Unlock dashboard</button><p class="muted" id="loginMsg"></p></div></div>
+<div class="admin-wrap">
+<header class="topbar"><div class="brand"><div class="brand-mark">AI</div><div><h1>Training Admin</h1><p>Manage the complete portal</p></div></div><div class="actions"><a class="btn ghost" href="index.html">View dashboard</a><button class="btn danger" id="lock">Lock</button></div></header>
+<section class="hero admin-hero"><div><span class="eyebrow">ADMIN CONTROL CENTER</span><h2>Class management</h2><p>Saved changes appear instantly for everyone using the public dashboard.</p><div class="status-row"><span class="pill" id="connection">Connecting…</span><span class="pill" id="lastSaved">Last saved: —</span></div></div><div class="field"><label>Updated by</label><input id="updatedBy" value="Admin" maxlength="60"></div></section>
+
+<nav class="app-nav admin-nav"><button class="nav-btn active" data-admin-view="attendance">Attendance matrix</button><button class="nav-btn" data-admin-view="sessions">Session details</button><button class="nav-btn" data-admin-view="settings">Backup & tools</button></nav>
+
+<section class="admin-view active" id="admin-attendance">
+<div class="admin-tools"><button class="btn secondary" id="allPresent">Mark all present</button><button class="btn secondary" id="allReviewed">Mark all reviewed</button><button class="btn ghost" id="clearAll">Clear all marks</button></div>
+<div class="table-wrap"><table id="matrix"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section class="admin-view" id="admin-sessions"><div id="sessionEditors" class="session-editor-grid"></div></section>
+
+<section class="admin-view" id="admin-settings">
+<div class="settings-grid">
+<article class="settings-card"><h3>Backup data</h3><p>Download all attendance, reviews, titles, notes, and resources as JSON.</p><button class="btn ghost" id="exportBtn">Export backup</button></article>
+<article class="settings-card"><h3>Restore data</h3><p>Choose a prior JSON backup. Review it before saving to Firebase.</p><label class="btn ghost">Import backup<input id="importFile" type="file" accept="application/json" hidden></label></article>
+<article class="settings-card"><h3>Database status</h3><p id="databaseInfo">Checking Firebase connection…</p></article>
+</div>
+</section>
+
+<div class="savebar"><span class="muted" id="dirtyLabel">Changes are not public until you save.</span><button class="btn primary" id="save">Save to Firebase & lock</button></div>
+</div><div class="toast" id="toast"></div>
+<script type="module" src="admin.js"></script>
+</body></html>

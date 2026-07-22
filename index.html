@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#c20a73">
+  <meta name="description" content="AImplement Training attendance and review portal">
+  <title>AImplement Training Portal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">AI</div><div><h1>AImplement Training</h1><p>Professional training portal</p></div></div>
+    <div class="actions"><button class="icon-btn" id="themeBtn" aria-label="Toggle light and dark theme">◐ <span class="text-label">Theme</span></button></div>
+  </header>
+
+  <nav class="app-nav" aria-label="Portal sections">
+    <button class="nav-btn active" data-view="home">Dashboard</button>
+    <button class="nav-btn" data-view="directory">Students</button>
+    <button class="nav-btn" data-view="leaderboard">Leaderboard</button>
+    <button class="nav-btn" data-view="analytics">Analytics</button>
+  </nav>
+
+  <section class="view active" id="view-home">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">LIVE TRAINING OVERVIEW</span>
+        <h2>Training progress, all in one place.</h2>
+        <p>Live attendance and review tracking across eight class sessions. Select any chart to see exactly who completed each item.</p>
+        <div class="status-row"><span class="pill" id="connection">Connecting to Firebase…</span><span class="pill" id="updated">Last updated: —</span><span class="pill" id="updatedBy">Updated by: —</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><strong id="studentCount">32</strong><span>Total students</span></div>
+        <div class="metric"><strong id="overallAttendance">0%</strong><span>Overall attendance</span></div>
+        <div class="metric"><strong id="overallReview">0%</strong><span>Overall reviews</span></div>
+        <div class="metric"><strong id="perfectCount">0</strong><span>Perfect completion</span></div>
+      </div>
+    </section>
+
+    <section class="insight-grid">
+      <article class="mini-card"><span class="mini-icon">✓</span><div><strong id="attendedCount">0</strong><small>Attendance marks</small></div></article>
+      <article class="mini-card"><span class="mini-icon">↻</span><div><strong id="reviewCount">0</strong><small>Review marks</small></div></article>
+      <article class="mini-card"><span class="mini-icon">★</span><div><strong id="fullAttendance">0</strong><small>Perfect attendance</small></div></article>
+      <article class="mini-card"><span class="mini-icon">!</span><div><strong id="followUpCount">0</strong><small>Need follow-up</small></div></article>
+    </section>
+
+    <div class="toolbar"><div class="search"><input id="studentSearch" placeholder="Search a student ID…" autocomplete="off"></div></div>
+    <div class="section-title"><div><h2>Class sessions</h2><p>Click a chart, note, or resource for details</p></div></div>
+    <main id="classGrid" class="class-grid"><div class="empty">Loading live class data…</div></main>
+  </section>
+
+  <section class="view" id="view-directory">
+    <div class="page-heading"><div><span class="eyebrow">STUDENT DIRECTORY</span><h2>All students</h2><p>Open any student to view their complete training history.</p></div><div class="search compact"><input id="directorySearch" placeholder="Filter student IDs…"></div></div>
+    <div id="directoryGrid" class="directory-grid"></div>
+  </section>
+
+  <section class="view" id="view-leaderboard">
+    <div class="page-heading"><div><span class="eyebrow">PERFORMANCE</span><h2>Leaderboard</h2><p>Ranked by combined attendance and review completion.</p></div></div>
+    <div class="table-card"><table class="leader-table"><thead><tr><th>Rank</th><th>Student</th><th>Attendance</th><th>Reviews</th><th>Overall</th></tr></thead><tbody id="leaderboardBody"></tbody></table></div>
+  </section>
+
+  <section class="view" id="view-analytics">
+    <div class="page-heading"><div><span class="eyebrow">TRAINING ANALYTICS</span><h2>Trends and follow-up</h2><p>Compare session performance and identify students who may need attention.</p></div></div>
+    <div class="analytics-grid">
+      <article class="chart-panel"><h3>Attendance by class</h3><div id="attendanceBars" class="bar-chart"></div></article>
+      <article class="chart-panel"><h3>Reviews by class</h3><div id="reviewBars" class="bar-chart"></div></article>
+      <article class="chart-panel wide"><h3>Students needing follow-up</h3><p class="muted">Students below 50% combined completion.</p><div id="atRiskList" class="risk-list"></div></article>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card"><div class="modal-head"><div><h2 id="modalTitle">Details</h2><p class="muted" id="modalSubtitle"></p></div><button class="close" id="closeModal" aria-label="Close">✕</button></div><div id="modalBody" class="modal-body"></div></div>
+</div>
+<script type="module" src="dashboard.js"></script>
+</body></html>
