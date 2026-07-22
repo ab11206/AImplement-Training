@@ -46,3 +46,7 @@ Update v3: Admin bulk attendance/review actions now apply only to the class sele
 
 
 Version 4 change: Replaced the class dropdown with eight separate per-class quick-action cards for reliable mobile use.
+
+
+## V4.1 countdown upgrade
+The dashboard now includes a live Eastern Time countdown in the upper-right corner. It uses each session date from Firebase, counts down to 8:00 PM, continues through the active class until 10:30 PM, displays the number of classes remaining, and shows “No more sessions left” after the final class.

@@ -12,6 +12,84 @@ const count=(s,key)=>students.filter(id=>s?.[key]?.[id]).length;
 const percent=(n,d=students.length)=>d?Math.round(n/d*100):0;
 const studentStats=id=>{let a=0,r=0;for(let i=1;i<=8;i++){a+=session(i).attendance?.[id]?1:0;r+=session(i).review?.[id]?1:0}return{a,r,overall:Math.round((a+r)/16*100)}};
 
+const TRAINING_TIME_ZONE='America/New_York';
+let countdownTimer=null;
+
+function zonedDateTimeToUtc(dateString,hour,minute){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateString||'')) return null;
+  const [year,month,day]=dateString.split('-').map(Number);
+  let guess=Date.UTC(year,month-1,day,hour,minute,0);
+  const formatter=new Intl.DateTimeFormat('en-US',{timeZone:TRAINING_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+  for(let pass=0;pass<3;pass++){
+    const parts=Object.fromEntries(formatter.formatToParts(new Date(guess)).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
+    const shown=Date.UTC(parts.year,parts.month-1,parts.day,parts.hour,parts.minute,parts.second);
+    const wanted=Date.UTC(year,month-1,day,hour,minute,0);
+    guess+=wanted-shown;
+  }
+  return new Date(guess);
+}
+
+function scheduledSessions(){
+  const items=[];
+  for(let i=1;i<=8;i++){
+    const s=session(i);
+    if(!s.date) continue;
+    const start=zonedDateTimeToUtc(s.date,20,0);
+    const end=zonedDateTimeToUtc(s.date,22,30);
+    if(start&&end) items.push({i,s,start,end});
+  }
+  return items.sort((a,b)=>a.start-b.start);
+}
+
+function setCountdownValues(ms){
+  const seconds=Math.max(0,Math.floor(ms/1000));
+  const days=Math.floor(seconds/86400);
+  const hours=Math.floor((seconds%86400)/3600);
+  const minutes=Math.floor((seconds%3600)/60);
+  const secs=seconds%60;
+  $('#countDays').textContent=String(days);
+  $('#countHours').textContent=String(hours).padStart(2,'0');
+  $('#countMinutes').textContent=String(minutes).padStart(2,'0');
+  $('#countSeconds').textContent=String(secs).padStart(2,'0');
+}
+
+function updateClassCountdown(){
+  const box=$('#nextClassCountdown');
+  if(!box) return;
+  const items=scheduledSessions();
+  const now=new Date();
+  const remaining=items.filter(item=>item.end>now);
+  $('#classesRemaining').textContent=`${remaining.length} ${remaining.length===1?'class':'classes'} remaining`;
+  box.classList.remove('finished');
+
+  if(!items.length){
+    $('#countdownTitle').textContent='Add class dates in the admin page';
+    $('#countdownSession').textContent='Classes run 8:00 PM–10:30 PM Eastern Time';
+    setCountdownValues(0);
+    return;
+  }
+  if(!remaining.length){
+    box.classList.add('finished');
+    $('#countdownTitle').textContent='No more sessions left';
+    $('#countdownSession').textContent='All scheduled classes are complete';
+    return;
+  }
+
+  const current=remaining.find(item=>item.start<=now&&now<item.end);
+  const target=current||remaining.find(item=>item.start>now)||remaining[0];
+  const targetTime=current?target.end:target.start;
+  $('#countdownTitle').textContent=current?`${target.s.title||`Class ${target.i}`} ends in`:`${target.s.title||`Class ${target.i}`} starts in`;
+  const dateLabel=target.start.toLocaleDateString('en-US',{timeZone:TRAINING_TIME_ZONE,weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  $('#countdownSession').textContent=`${dateLabel} · 8:00 PM–10:30 PM Eastern Time`;
+  setCountdownValues(targetTime-now);
+}
+
+function startClassCountdown(){
+  if(countdownTimer) clearInterval(countdownTimer);
+  updateClassCountdown();
+  countdownTimer=setInterval(updateClassCountdown,1000);
+}
+
 function statusInfo(s){const raw=s.status||'not-started';return {key:raw,label:raw==='completed'?'Completed':raw==='in-progress'?'In Progress':'Not Started'}}
 function openModal(title,subtitle,html){$('#modalTitle').textContent=title;$('#modalSubtitle').textContent=subtitle||'';$('#modalBody').innerHTML=html;$('#detailModal').classList.add('open')}
 function studentProfile(id){const st=studentStats(id);const rows=Array.from({length:8},(_,x)=>{const i=x+1,s=session(i);return `<tr><td>${esc(s.title||`Class ${i}`)}</td><td><span class="state-dot ${s.attendance?.[id]?'yes':'no'}"></span>${s.attendance?.[id]?'Attended':'Absent'}</td><td><span class="state-dot ${s.review?.[id]?'yes':'no'}"></span>${s.review?.[id]?'Reviewed':'Pending'}</td></tr>`}).join('');openModal(id,`${st.a}/8 attended · ${st.r}/8 reviewed · ${st.overall}% overall`,`<div class="profile-summary"><div><strong>${percent(st.a,8)}%</strong><span>Attendance</span></div><div><strong>${percent(st.r,8)}%</strong><span>Reviews</span></div><div><strong>${st.overall}%</strong><span>Overall</span></div></div><div class="table-card"><table class="profile-table"><thead><tr><th>Session</th><th>Attendance</th><th>Review</th></tr></thead><tbody>${rows}</tbody></table></div>`)}
@@ -33,4 +111,4 @@ $('#closeModal').onclick=()=>$('#detailModal').classList.remove('open');$('#deta
 $('#studentSearch').addEventListener('input',e=>{const q=e.target.value.trim().toUpperCase(),hit=students.find(s=>s===q);if(hit)studentProfile(hit)});$('#directorySearch').addEventListener('input',e=>renderDirectory(e.target.value));
 const theme=localStorage.getItem('theme')||'light';document.documentElement.dataset.theme=theme;$('#themeBtn').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('theme',n)};
 
-onValue(ref(db,'trainingDashboard'),snap=>{state=snap.val()||{sessions:{},meta:{}};$('#connection').textContent='● Live data connected';const u=state.meta?.updatedAt;$('#updated').textContent=`Last updated: ${u?new Date(u).toLocaleString():'No saves yet'}`;$('#updatedBy').textContent=`Updated by: ${state.meta?.updatedBy||'—'}`;renderAll()},err=>{$('#connection').textContent='Connection error';$('#classGrid').innerHTML=`<div class="empty">Unable to load Firebase data: ${esc(err.message)}</div>`});
+onValue(ref(db,'trainingDashboard'),snap=>{state=snap.val()||{sessions:{},meta:{}};$('#connection').textContent='● Live data connected';const u=state.meta?.updatedAt;$('#updated').textContent=`Last updated: ${u?new Date(u).toLocaleString():'No saves yet'}`;$('#updatedBy').textContent=`Updated by: ${state.meta?.updatedBy||'—'}`;renderAll();startClassCountdown()},err=>{startClassCountdown();$('#connection').textContent='Connection error';$('#classGrid').innerHTML=`<div class="empty">Unable to load Firebase data: ${esc(err.message)}</div>`});
